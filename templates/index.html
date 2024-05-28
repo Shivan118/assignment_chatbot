@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+        }
+        .navbar {
+            background-color: #000000;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 98%;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            overflow: hidden;
+        }
+        .chat-box {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse; /*Change to reverse message order */
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 80%;
+        }
+        .message.user {
+            align-self: flex-end;
+            background-color: #e1ffc7;
+        }
+        .message.bot {
+            align-self: flex-start;
+            background-color: #f1f0f0;
+        }
+        .input-box {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
+        .input-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .input-box button {
+            padding: 10px 15px;
+            margin-left: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>QA Chatbot</h1>
+    </div>
+    <div class="chat-container">
+        <div class="chat-box" id="chat-box">
+            <!-- Chat history will be loaded here -->
+        </div>
+        <div class="input-box">
+            <input type="text" id="user-input" placeholder="Type your message here..." onkeypress="checkEnter(event)">
+            <button onclick="sendMessage()">Send</button>
+            <button onclick="clearChat()">Clear Chat</button>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(function() {
+            var chatBox = document.getElementById('chat-box');
+            var botMessage = document.createElement('div');
+            botMessage.className = 'message bot';
+            botMessage.textContent = "Hi there! How can I assist you?";
+            chatBox.insertBefore(botMessage, chatBox.firstChild);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 1000); // Delay in milliseconds
+
+        // Function to send message
+        function sendMessage() {
+            var userInput = document.getElementById('user-input').value;
+            if (userInput.trim() === "") return;
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                var chatBox = document.getElementById('chat-box');
+                var userMessage = document.createElement('div');
+                userMessage.className = 'message user';
+                userMessage.textContent = userInput;
+                chatBox.insertBefore(userMessage, chatBox.firstChild);
+
+                var botMessage = document.createElement('div');
+                botMessage.className = 'message bot';
+                botMessage.textContent = data.response;
+                chatBox.insertBefore(botMessage, chatBox.firstChild);
+
+                document.getElementById('user-input').value = "";
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+
+        // Function to handle Enter key press
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Function to clear chat
+        function clearChat() {
+            document.getElementById('chat-box').innerHTML = "";
+        }
+
+        // Clear chat when the page is loaded
+        window.onload = clearChat;
+    </script>
+</body>
+</html>
